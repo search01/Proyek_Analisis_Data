@@ -1,26 +1,31 @@
-import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import plotly.express as px
+import seaborn as sns
+import streamlit as st
 
-# Fungsi ini digunakan untuk menemukan jam dengan jumlah penyewaan sepeda paling banyak.
-def find_peak_rental_hour(df):
-    hourly_rentals = df.groupby('hours')['count_cr'].sum()
-    jam_max_penyewaan = hourly_rentals.idxmax()
-    jumlah_max_penyewaan = hourly_rentals.max()
-    return jam_max_penyewaan, jumlah_max_penyewaan
-# Panggil fungsi find_peak_rental_hour dengan dataframe yang sesuai sebagai argumennya
-peak_hour, max_rentals = find_peak_rental_hour(hour_df)
+# Fungsi untuk menghitung total penyewaan per jam
+def get_total_count_by_hour_df(hour_df):
+    hour_count_df =  hour_df.groupby(by="hours").agg({"count_cr": ["sum"]})
+    return hour_count_df
 
-# Fungsi untuk menghitung total penggunaan sepeda pada jam puncak dan non-puncak.  Misalnya, jam puncak adalah 6-9 pagi dan 4-7 sore
-def calculate_peak_hours_usage(dataframe):
-    peak_hours = [6, 7, 8, 9, 16, 17, 18, 19]
-    dataframe["peak_hour"] = dataframe["hours"].isin(peak_hours)
-    peak_hour_usage = dataframe[dataframe["peak_hour"]]["count_cr"].sum()
-    non_peak_hour_usage = dataframe[~dataframe["peak_hour"]]["count_cr"].sum()
-    return peak_hour_usage, non_peak_hour_usage
-# Memanggil fungsi dan menyimpan hasilnya
-peak_hour_usage, non_peak_hour_usage = calculate_peak_hours_usage(hour_df)
+# Fungsi untuk menghitung total penyewaan per hari dalam rentang tahun 2011-2012
+def count_by_day_df(day_df):
+    day_df_count_2011 = day_df.query('dteday >= "2011-01-01" and dteday < "2012-12-31"')
+    return day_df_count_2011
+
+# Fungsi untuk menghitung total pelanggan terdaftar per hari
+def total_registered_df(day_df):
+    reg_df =  day_df.groupby(by="dteday").agg({"registered": "sum"})
+    reg_df = reg_df.reset_index()
+    reg_df.rename(columns={"registered": "register_sum"}, inplace=True)
+    return reg_df
+
+# Fungsi untuk menghitung total pelanggan casual per hari
+def total_casual_df(day_df):
+    cas_df =  day_df.groupby(by="dteday").agg({"casual": ["sum"]})
+    cas_df = cas_df.reset_index()
+    cas_df.rename(columns={"casual": "casual_sum"}, inplace=True)
+    return cas_df
 
 # Fungsi untuk menghitung total order per jam
 def sum_order(hour_df):
@@ -36,71 +41,66 @@ def macem_season(day_df):
 days_df = pd.read_csv("dashboard/day_clean.csv")
 hours_df = pd.read_csv("dashboard/hour_clean.csv")
 
-# Fungsi bike sharing di jam puncak dan non - puncak
-def compare_peak_non_peak(peak_hour_usage, non_peak_hour_usage):
-    # Menyiapkan data
-    categories = ['Peak Hours', 'Non-Peak Hours']
-    usage = [peak_hour_usage, non_peak_hour_usage]
+# Melakukan penyesuaian pada kolom datetime
+datetime_columns = ["dteday"]
+for column in datetime_columns:
+    days_df[column] = pd.to_datetime(days_df[column])
+    hours_df[column] = pd.to_datetime(hours_df[column])
 
-    # Membuat plot
-    plt.figure(figsize=(6, 4))
-    plt.bar(categories, usage, color=['blue', 'orange'])
-    plt.title('Perbandingan Penggunaan Sepeda antara Jam Puncak dan Jam Non-Puncak')
-    plt.xlabel('Waktu')
-    plt.ylabel('Jumlah Penggunaan Sepeda')
-    plt.show()
+# Menentukan rentang tanggal yang dapat dipilih
+min_date_days = days_df["dteday"].min()
+max_date_days = days_df["dteday"].max()
 
-# Fungsi 
-def visualize_bike_rental(day_df):
-    # Ekstrak hari dari kolom 'dteday'
-    day_df['day_of_week'] = day_df['dteday'].dt.day_name()
+# Filter data berdasarkan rentang tanggal yang dipilih
+start_date, end_date = st.date_input(
+    label='Rentang Waktu',
+    min_value=min_date_days,
+    max_value=max_date_days,
+    value=[min_date_days, max_date_days])
 
-    # Mengatur urutan hari dalam seminggu
-    day_order = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+main_df_days = days_df[(days_df["dteday"] >= str(start_date)) & 
+                       (days_df["dteday"] <= str(end_date))]
+main_df_hour = hours_df[(hours_df["dteday"] >= str(start_date)) & 
+                        (hours_df["dteday"] <= str(end_date))]
 
-    # Mengubah kolom 'day_of_week' menjadi tipe kategori dengan urutan yang ditentukan
-    day_df['day_of_week'] = pd.Categorical(day_df['day_of_week'], categories=day_order, ordered=True)
+# Menghasilkan visualisasi dengan Streamlit
+st.header('Data Bike Sharing')
 
-    # Ekstrak bulan dari kolom 'dteday'
-    day_df['month'] = day_df['dteday'].dt.month
 
-    # Visualisasi rata-rata jumlah peminjaman sepeda berdasarkan hari dalam seminggu
-    plt.figure(figsize=(6,4))
-    day_df.groupby('day_of_week')['count_cr'].mean().plot(marker='o')
-    plt.title('Rata-rata Jumlah Peminjaman Sepeda Berdasarkan Hari dalam Seminggu')
-    plt.xlabel('Hari dalam Seminggu')
-    plt.ylabel('Rata-rata Jumlah Peminjaman Sepeda')
-    plt.xticks(rotation=45)
-    plt.grid(True)
-    plt.show()
 
-    # Visualisasi rata-rata jumlah peminjaman sepeda berdasarkan bulan dalam setahun
-    plt.figure(figsize=(6,4))
-    day_df.groupby('month')['count_cr'].mean().plot(marker='o')
-    plt.title('Rata-rata Jumlah Peminjaman Sepeda Berdasarkan Bulan dalam Setahun')
-    plt.xlabel('Bulan dalam Setahun')
-    plt.ylabel('Rata-rata Jumlah Peminjaman Sepeda')
-    plt.xticks(range(1, 13), ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
-    plt.grid(True)
-    plt.show()
+# Visualisasi Jumlah Penyewaan Sepeda Berdasarkan Musim
+st.subheader("Tren Peminjaman Sepeda Berdasarkan Musim")
+colors = ["#FFA07A", "#87CEEB", "#32CD32", "#FFD700"]
+fig, ax = plt.subplots(figsize=(10, 6))
+sns.barplot(x="season", y="count_cr", data=macem_season(main_df_days), palette=colors, ax=ax)
+ax.set_title("Jumlah Peminjaman Sepeda Berdasarkan Musim", fontsize=16)
+ax.set_xlabel("Musim", fontsize=12)
+ax.set_ylabel("Jumlah Peminjaman", fontsize=12)
+st.pyplot(fig)
+st.write("Terlihat bahwa Fall Season memiliki tingkat penyewaan tertinggi yaitu 1,061,129, sedangkan pada Spring Season memiliki tingkat penyewaan yang rendah yaitu 471,348.")
 
-# Fungsi tren dalam jangka panjang
-    def visualize_bike_usage_over_time(day_df):
-    # Konversi kolom 'dteday' ke tipe data datetime
-    day_df['dteday'] = pd.to_datetime(day_df['dteday'])
 
-    # Ekstrak tahun dari kolom 'dteday'
-    day_df['year'] = day_df['dteday'].dt.year
+# Visualisasi Tren Peminjaman Sepeda Tahunan
+st.subheader("Tren Peminjaman Sepeda Tahunan")
+fig, ax = plt.subplots(figsize=(12, 6))
+sns.lineplot(data=count_by_day_df(main_df_days), x="dteday", y="count_cr", color="#FFA07A", ax=ax)
+ax.set_title("Tren Peminjaman Sepeda Tahunan", fontsize=16)
+ax.set_xlabel("Tanggal", fontsize=12)
+ax.set_ylabel("Jumlah Peminjaman", fontsize=12)
+ax.tick_params(axis='x', rotation=45)
+st.pyplot(fig)
+st.write('dari visualisasi data pada gambar diatas, pada  September 2012 memiliki jumlah order terbayak dan pada januari 2011 mengalami penurunan order yang cukup signifikan')
 
-    # Hitung jumlah total peminjaman sepeda per tahun
-    yearly_rentals = day_df.groupby('year')['count_cr'].sum()
-
-    # Visualisasi tren penggunaan sepeda dari waktu ke waktu
-    plt.figure(figsize=(6, 4))
-    yearly_rentals.plot(marker='o', color='blue')
-    plt.title('Tren Penggunaan Sepeda dari Waktu ke Waktu')
-    plt.xlabel('Tahun')
-    plt.ylabel('Jumlah Peminjaman Sepeda')
-    plt.grid(True)
-    plt.xticks(yearly_rentals.index)
-    plt.show()
+# Total Penyewaan Sepeda per Tahun
+st.subheader("Total Peminjaman Sepeda per Tahun")
+total = main_df_days.groupby('year')[['registered', 'casual']].sum()
+total['Jumlah penyewa'] = total.sum(axis=1)
+years = total.index
+total_rentals = total['Jumlah penyewa']
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.bar(years, total_rentals, color=['#90CAF9', '#2196F3'])
+ax.set_xlabel('Tahun')
+ax.set_ylabel('Jumlah Penyewaan')
+ax.set_title('Total Penyewaan Sepeda per Tahun')
+st.pyplot(fig)
+st.write("Terlihat jelas bahwa jumlah penyewaan pada tahun 2012 lebih tinggi dengan jumlah 2049576 daripada tahun 2011 dengan jumlah 2049576")
