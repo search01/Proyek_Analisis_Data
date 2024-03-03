@@ -36,6 +36,79 @@ def macem_season(day_df):
 days_df = pd.read_csv("dashboard/day_clean.csv")
 hours_df = pd.read_csv("dashboard/hour_clean.csv")
 
+# Fungsi bike sharing di jam puncak dan non - puncak
+def compare_peak_non_peak(peak_hour_usage, non_peak_hour_usage):
+    # Menyiapkan data
+    categories = ['Peak Hours', 'Non-Peak Hours']
+    usage = [peak_hour_usage, non_peak_hour_usage]
+
+    # Membuat plot
+    plt.figure(figsize=(6, 4))
+    plt.bar(categories, usage, color=['blue', 'orange'])
+    plt.title('Perbandingan Penggunaan Sepeda antara Jam Puncak dan Jam Non-Puncak')
+    plt.xlabel('Waktu')
+    plt.ylabel('Jumlah Penggunaan Sepeda')
+    plt.show()
+
+# Fungsi 
+def visualize_bike_rental(day_df):
+    # Ekstrak hari dari kolom 'dteday'
+    day_df['day_of_week'] = day_df['dteday'].dt.day_name()
+
+    # Mengatur urutan hari dalam seminggu
+    day_order = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+    # Mengubah kolom 'day_of_week' menjadi tipe kategori dengan urutan yang ditentukan
+    day_df['day_of_week'] = pd.Categorical(day_df['day_of_week'], categories=day_order, ordered=True)
+
+    # Ekstrak bulan dari kolom 'dteday'
+    day_df['month'] = day_df['dteday'].dt.month
+
+    # Visualisasi rata-rata jumlah peminjaman sepeda berdasarkan hari dalam seminggu
+    plt.figure(figsize=(6,4))
+    day_df.groupby('day_of_week')['count_cr'].mean().plot(marker='o')
+    plt.title('Rata-rata Jumlah Peminjaman Sepeda Berdasarkan Hari dalam Seminggu')
+    plt.xlabel('Hari dalam Seminggu')
+    plt.ylabel('Rata-rata Jumlah Peminjaman Sepeda')
+    plt.xticks(rotation=45)
+    plt.grid(True)
+    plt.show()
+
+    # Menambahkan jarak
+    print("\n\n")
+
+    # Visualisasi rata-rata jumlah peminjaman sepeda berdasarkan bulan dalam setahun
+    plt.figure(figsize=(6,4))
+    day_df.groupby('month')['count_cr'].mean().plot(marker='o')
+    plt.title('Rata-rata Jumlah Peminjaman Sepeda Berdasarkan Bulan dalam Setahun')
+    plt.xlabel('Bulan dalam Setahun')
+    plt.ylabel('Rata-rata Jumlah Peminjaman Sepeda')
+    plt.xticks(range(1, 13), ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
+    plt.grid(True)
+    plt.show()
+
+# Fungsi tren dalam jangka panjang
+    def visualize_bike_usage_over_time(day_df):
+    # Konversi kolom 'dteday' ke tipe data datetime
+    day_df['dteday'] = pd.to_datetime(day_df['dteday'])
+
+    # Ekstrak tahun dari kolom 'dteday'
+    day_df['year'] = day_df['dteday'].dt.year
+
+    # Hitung jumlah total peminjaman sepeda per tahun
+    yearly_rentals = day_df.groupby('year')['count_cr'].sum()
+
+    # Visualisasi tren penggunaan sepeda dari waktu ke waktu
+    plt.figure(figsize=(6, 4))
+    yearly_rentals.plot(marker='o', color='blue')
+    plt.title('Tren Penggunaan Sepeda dari Waktu ke Waktu')
+    plt.xlabel('Tahun')
+    plt.ylabel('Jumlah Peminjaman Sepeda')
+    plt.grid(True)
+    plt.xticks(yearly_rentals.index)
+    plt.show()
+
+
 
 
 
