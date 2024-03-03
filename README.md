@@ -10,7 +10,7 @@
 - Install library lain yang diperlukan menggunakan pip:
 <pre><code>pip install numpy pandas scipy matplotlib seaborn</code></pre>
 Clone repositori ini ke komputer lokal Anda:
-<pre><code> git clone https://github.com/yuliapratiwii/Project-Akhir-analisis-data.git</code></pre>
+<pre><code> git clone https://github.com/search01/Proyek_Analisis_Data.git</code></pre>
 - Masuk ke direktori lokal repositori:
 <pre><code> cd Project-Akhir-analisis-data </code></pre>
 Jalankan aplikasi dengan perintah:
