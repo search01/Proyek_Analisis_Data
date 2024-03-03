@@ -9,18 +9,14 @@ def find_peak_rental_hour(df):
     jam_max_penyewaan = hourly_rentals.idxmax()
     jumlah_max_penyewaan = hourly_rentals.max()
     return jam_max_penyewaan, jumlah_max_penyewaan
-# Panggil fungsi find_peak_rental_hour dengan dataframe yang sesuai sebagai argumennya
-peak_hour, max_rentals = find_peak_rental_hour(hour_df)
 
-# Fungsi untuk menghitung total penggunaan sepeda pada jam puncak dan non-puncak.  Misalnya, jam puncak adalah 6-9 pagi dan 4-7 sore
+# Fungsi untuk menghitung total penggunaan sepeda pada jam puncak dan non-puncak. Misalnya, jam puncak adalah 6-9 pagi dan 4-7 sore
 def calculate_peak_hours_usage(dataframe):
     peak_hours = [6, 7, 8, 9, 16, 17, 18, 19]
     dataframe["peak_hour"] = dataframe["hours"].isin(peak_hours)
     peak_hour_usage = dataframe[dataframe["peak_hour"]]["count_cr"].sum()
     non_peak_hour_usage = dataframe[~dataframe["peak_hour"]]["count_cr"].sum()
     return peak_hour_usage, non_peak_hour_usage
-# Memanggil fungsi dan menyimpan hasilnya
-peak_hour_usage, non_peak_hour_usage = calculate_peak_hours_usage(hour_df)
 
 # Fungsi untuk menghitung total order per jam
 def sum_order(hour_df):
@@ -32,11 +28,7 @@ def macem_season(day_df):
     season_df = day_df.groupby(by="season").count_cr.sum().reset_index() 
     return season_df
 
-# Membaca data dari file CSV
-days_df = pd.read_csv("dashboard/day_clean.csv")
-hours_df = pd.read_csv("dashboard/hour_clean.csv")
-
-# Fungsi bike sharing di jam puncak dan non - puncak
+# Fungsi untuk memvisualisasikan perbandingan penggunaan sepeda antara jam puncak dan jam non-puncak
 def compare_peak_non_peak(peak_hour_usage, non_peak_hour_usage):
     # Menyiapkan data
     categories = ['Peak Hours', 'Non-Peak Hours']
@@ -50,7 +42,7 @@ def compare_peak_non_peak(peak_hour_usage, non_peak_hour_usage):
     plt.ylabel('Jumlah Penggunaan Sepeda')
     plt.show()
 
-# Fungsi 
+# Fungsi untuk memvisualisasikan rata-rata jumlah peminjaman sepeda berdasarkan hari dalam seminggu dan bulan dalam setahun
 def visualize_bike_rental(day_df):
     # Ekstrak hari dari kolom 'dteday'
     day_df['day_of_week'] = day_df['dteday'].dt.day_name()
@@ -74,9 +66,6 @@ def visualize_bike_rental(day_df):
     plt.grid(True)
     plt.show()
 
-    # Menambahkan jarak
-    print("\n\n")
-
     # Visualisasi rata-rata jumlah peminjaman sepeda berdasarkan bulan dalam setahun
     plt.figure(figsize=(6,4))
     day_df.groupby('month')['count_cr'].mean().plot(marker='o')
@@ -87,8 +76,8 @@ def visualize_bike_rental(day_df):
     plt.grid(True)
     plt.show()
 
-# Fungsi tren dalam jangka panjang
-    def visualize_bike_usage_over_time(day_df):
+# Fungsi untuk memvisualisasikan tren penggunaan sepeda dari waktu ke waktu
+def visualize_bike_usage_over_time(day_df):
     # Konversi kolom 'dteday' ke tipe data datetime
     day_df['dteday'] = pd.to_datetime(day_df['dteday'])
 
@@ -108,6 +97,20 @@ def visualize_bike_rental(day_df):
     plt.xticks(yearly_rentals.index)
     plt.show()
 
+# Fungsi untuk menampilkan grafik sesuai dengan kategori musim
+def visualize_seasonal_data(day_df):
+    # Mengelompokkan data berdasarkan musim dan menghitung total penyewaan
+    seasonal_rentals = day_df.groupby('season')['count_cr'].sum().reset_index()
+
+    # Membuat plot menggunakan Plotly Express
+    fig = px.bar(seasonal_rentals, x='season', y='count_cr', title='Total Penyewaan Sepeda Berdasarkan Musim')
+    fig.update_xaxes(title_text='Musim')
+    fig.update_yaxes(title_text='Total Penyewaan Sepeda')
+    st.plotly_chart(fig)
+
+# Membaca data dari file CSV
+days_df = pd.read_csv("dashboard/day_clean.csv")
+hours_df = pd.read_csv("dashboard/hour_clean.csv")
 
 
 
