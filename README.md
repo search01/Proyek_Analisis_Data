@@ -12,7 +12,7 @@
 Clone repositori ini ke komputer lokal Anda:
 <pre><code> git clone https://github.com/search01/Proyek_Analisis_Data.git</code></pre>
 - Masuk ke direktori lokal repositori:
-<pre><code> cd Project-Akhir-analisis-data </code></pre>
+<pre><code> cd Proyek_Analisis_Data </code></pre>
 Jalankan aplikasi dengan perintah:
 <pre><code> streamlit run dashboard.py</code></pre>
 
