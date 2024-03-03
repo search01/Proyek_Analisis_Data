@@ -1,7 +1,11 @@
 import streamlit as st
-import pandas as pd
-import matplotlib.pyplot as plt
 import plotly.express as px
+import pandas as pd
+
+
+# Membaca data dari file CSV
+days_df = pd.read_csv("dashboard/day_clean.csv")
+hours_df = pd.read_csv("dashboard/hour_clean.csv")
 
 # Fungsi ini digunakan untuk menemukan jam dengan jumlah penyewaan sepeda paling banyak.
 def find_peak_rental_hour(df):
@@ -108,9 +112,7 @@ def visualize_seasonal_data(day_df):
     fig.update_yaxes(title_text='Total Penyewaan Sepeda')
     st.plotly_chart(fig)
 
-# Membaca data dari file CSV
-days_df = pd.read_csv("dashboard/day_clean.csv")
-hours_df = pd.read_csv("dashboard/hour_clean.csv")
+
 
 
 
