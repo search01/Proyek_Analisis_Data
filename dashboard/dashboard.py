@@ -1,8 +1,8 @@
-import streamlit as st
-import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import streamlit as st
+from babel.numbers import format_currency
 
 # Fungsi untuk menemukan jam dengan jumlah penyewaan sepeda paling banyak
 def find_peak_rental_hour(df):
