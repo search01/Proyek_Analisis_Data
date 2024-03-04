@@ -71,6 +71,6 @@ total = day_df.groupby(day_df['dteday'].dt.year)[['registered', 'casual']].sum()
 total['Total Penyewaan'] = total.sum(axis=1)
 
 # Menampilkan plot menggunakan Streamlit
-st.subheader("Popularitas Penyewaan Sepeda diTahun")
+st.subheader("Popularitas Penyewaan Sepeda pada tahun")
 st.bar_chart(total['Total Penyewaan'])
 
