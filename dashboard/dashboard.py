@@ -35,8 +35,6 @@ def calculate_peak_hour_usage(hour_df):
     peak_hour_usage = hour_df[hour_df["peak_hour"]]["count_cr"].sum()
     non_peak_hour_usage = hour_df[~hour_df["peak_hour"]]["count_cr"].sum()
     return peak_hour_usage, non_peak_hour_usage
-
-# Memanggil fungsi untuk menghitung total penggunaan sepeda pada jam puncak dan non-puncak
 peak_hour_usage, non_peak_hour_usage = calculate_peak_hour_usage(hour_df)
 
 # Menampilkan plot menggunakan Streamlit
