@@ -15,12 +15,8 @@ datetime_columns = ["dteday"]
 for column in datetime_columns:
     day_df[column] = pd.to_datetime(day_df[column])
     hour_df[column] = pd.to_datetime(hour_df[column])
-
-# Menentukan rentang tanggal yang dapat dipilih
 min_date_days = day_df["dteday"].min()
 max_date_days = day_df["dteday"].max()
-
-# Filter data berdasarkan rentang tanggal yang dipilih
 start_date, end_date = st.date_input(
     label='Rentang Waktu',
     min_value=min_date_days,
@@ -32,74 +28,51 @@ main_df_days = day_df[(day_df["dteday"] >= str(start_date)) &
 main_df_hour = hour_df[(hour_df["dteday"] >= str(start_date)) & 
                         (hour_df["dteday"] <= str(end_date))]
 
+# Fungsi untuk menghitung total penggunaan sepeda pada jam puncak dan non-puncak
+def calculate_peak_hour_usage(hour_df):
+    peak_hours = [6, 7, 8, 9, 16, 17, 18, 19]
+    hour_df["peak_hour"] = hour_df["hours"].isin(peak_hours)
+    peak_hour_usage = hour_df[hour_df["peak_hour"]]["count_cr"].sum()
+    non_peak_hour_usage = hour_df[~hour_df["peak_hour"]]["count_cr"].sum()
+    return peak_hour_usage, non_peak_hour_usage
 
-st.subheader("Peminjaman Sepeda pada jam tertentu")
-# Menyiapkan data
-categories = ['Peak Hours', 'Non-Peak Hours']
-usage = [peak_hour_usage, non_peak_hour_usage]
+# Memanggil fungsi untuk menghitung total penggunaan sepeda pada jam puncak dan non-puncak
+peak_hour_usage, non_peak_hour_usage = calculate_peak_hour_usage(hour_df)
 
 # Menampilkan plot menggunakan Streamlit
-st.bar_chart(usage, labels=categories, colors=['blue', 'orange'])
-st.title('Perbandingan Penggunaan Sepeda antara Jam Puncak dan Jam Non-Puncak')
-st.xlabel('Waktu')
-st.ylabel('Jumlah Penggunaan Sepeda')
+st.subheader("Peminjaman Sepeda pada waktu tertentu")
+categories = ['Jam Puncak', 'Jam Non - Puncak']
+usage = [peak_hour_usage, non_peak_hour_usage]
+fig, ax = plt.subplots(figsize=(6, 4))
+ax.bar(categories, usage, color=['blue', 'orange'])
+ax.set_title('Perbandingan Penggunaan Sepeda antara Jam Puncak dan Jam Non-Puncak')
+ax.set_xlabel('Waktu')
+ax.set_ylabel('Jumlah Penggunaan Sepeda')
+st.pyplot(fig)
 
-st.subheader("Peminjaman Sepeda pada hari dalam seminggu")
-# Fungsi untuk menampilkan rata-rata jumlah peminjaman sepeda berdasarkan hari dalam seminggu
-def visualize_bike_rental(day_df):
-    day_df['day_of_week'] = pd.to_datetime(day_df['dteday']).dt.day_name()
-    plt.figure(figsize=(10,4))
-    sns.barplot(x=day_df['day_of_week'], y=day_df['count_cr'], estimator='mean')
-    plt.title('Rata-rata Jumlah Peminjaman Sepeda Berdasarkan Hari dalam Seminggu')
-    plt.xlabel('Hari dalam Seminggu')
-    plt.ylabel('Rata-rata Jumlah Peminjaman Sepeda')
+# Mengkonversi kolom tanggal menjadi tipe data datetime
+day_df['dteday'] = pd.to_datetime(day_df['dteday'])
+day_df['day_of_week'] = day_df['dteday'].dt.day_name()
+days_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
-    # Simpan plot ke dalam buffer
-    buffer = BytesIO()
-    plt.savefig(buffer, format='png')
-    buffer.seek(0)
+# Fungsi untuk menghitung rata-rata penggunaan sepeda berdasarkan hari dalam seminggu
+def calculate_daily_average_by_day(day_df):
+    daily_average_by_day = day_df.groupby('day_of_week')['count_cr'].mean()
+    daily_average_by_day = daily_average_by_day.reindex(days_order)
+    return daily_average_by_day
+# Menghitung rata-rata penggunaan sepeda berdasarkan hari dalam seminggu
+daily_average_by_day = calculate_daily_average_by_day(day_df)
 
-    # Menampilkan plot menggunakan Streamlit
-    st.image(buffer, caption='Rata-rata Jumlah Peminjaman Sepeda Berdasarkan Hari dalam Seminggu')
+# Menampilkan plot menggunakan Streamlit
+st.subheader("Penggunaan Sepeda untuk Setiap Hari dalam Seminggu")
+st.bar_chart(daily_average_by_day)
 
-# Memanggil fungsi untuk menampilkan rata-rata jumlah peminjaman sepeda berdasarkan hari dalam seminggu
-visualize_bike_rental(day_df)
 
-st.subheader("Peminjaman Sepeda pada bulan dalam setahun")
-# Fungsi untuk menampilkan rata-rata jumlah peminjaman sepeda berdasarkan bulan dalam setahun
-def visualize_bike_rental_by_month(day_df):
-    day_df['month'] = pd.to_datetime(day_df['dteday']).dt.month_name()
-    plt.figure(figsize=(12,4))
-    sns.barplot(x=day_df['month'], y=day_df['count_cr'], estimator='mean')
-    plt.title('Rata-rata Jumlah Peminjaman Sepeda Berdasarkan Bulan dalam Setahun')
-    plt.xlabel('Bulan dalam Setahun')
-    plt.ylabel('Rata-rata Jumlah Peminjaman Sepeda')
+# Menghitung total penyewaan popularitas
+total = day_df.groupby(day_df['dteday'].dt.year)[['registered', 'casual']].sum()
+total['Total Penyewaan'] = total.sum(axis=1)
 
-    # Simpan plot ke dalam buffer
-    buffer = BytesIO()
-    plt.savefig(buffer, format='png')
-    buffer.seek(0)
+# Menampilkan plot menggunakan Streamlit
+st.subheader("Popularitas Penyewaan Sepeda diTahun")
+st.bar_chart(total['Total Penyewaan'])
 
-    # Menampilkan plot menggunakan Streamlit
-    st.image(buffer, caption='Rata-rata Jumlah Peminjaman Sepeda Berdasarkan Bulan dalam Setahun')
-
-# Memanggil fungsi untuk menampilkan rata-rata jumlah peminjaman sepeda berdasarkan bulan dalam setahun
-visualize_bike_rental_by_month(day_df)
-
-st.subheader("Tren penggunaan sepeda dari waktu ke waktu")
-# Fungsi untuk menampilkan tren penggunaan sepeda dari waktu ke waktu
-def visualize_bike_usage_over_time(day_df):
-    day_df['year'] = pd.to_datetime(day_df['dteday']).dt.year
-    yearly_rentals = day_df.groupby('year')['count_cr'].sum()
-
-    # Plot tren penggunaan sepeda dari waktu ke waktu
-    fig, ax = plt.subplots(figsize=(10, 4))
-    yearly_rentals.plot(marker='o', color='blue', ax=ax)
-    ax.set_title('Tren Penggunaan Sepeda dari Waktu ke Waktu')
-    ax.set_xlabel('Tahun')
-    ax.set_ylabel('Jumlah Peminjaman Sepeda')
-
-    # Menampilkan plot menggunakan Streamlit
-    st.pyplot(fig)
-# Memanggil fungsi untuk menampilkan tren penggunaan sepeda dari waktu ke waktu
-visualize_bike_usage_over_time(day_df)
