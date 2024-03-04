@@ -33,21 +33,16 @@ main_df_hour = hour_df[(hour_df["dteday"] >= str(start_date)) &
                         (hour_df["dteday"] <= str(end_date))]
 
 
-st.subheader("Peminjaman Sepeda pada waktu tertentu")
-# Filter untuk rentang waktu
-selected_hour = st.slider("Pilih Rentang Waktu (Jam):", min_value=0, max_value=23, value=(6, 19))
-# Fungsi untuk menghitung total penggunaan sepeda pada jam puncak dan non-puncak
-def calculate_peak_hours_usage(dataframe):
-    peak_hours = [6, 7, 8, 9, 16, 17, 18, 19]
-    dataframe["peak_hour"] = dataframe["hours"].isin(peak_hours)
-    peak_hour_usage = dataframe[dataframe["peak_hour"]]["count_cr"].sum()
-    non_peak_hour_usage = dataframe[~dataframe["peak_hour"]]["count_cr"].sum()
-    return peak_hour_usage, non_peak_hour_usage
-peak_hour_usage, non_peak_hour_usage = calculate_peak_hours_usage(hour_df)
+st.subheader("Peminjaman Sepeda pada jam tertentu")
+# Menyiapkan data
+categories = ['Peak Hours', 'Non-Peak Hours']
+usage = [peak_hour_usage, non_peak_hour_usage]
 
-# Menampilkan hasil penggunaan sepeda pada jam puncak dan non-puncak
-st.write(f"Total penggunaan sepeda pada jam puncak ({selected_hour[0]}-{selected_hour[1]}):", peak_hour_usage)
-st.write(f"Total penggunaan sepeda pada jam non-puncak ({selected_hour[0]}-{selected_hour[1]}):", non_peak_hour_usage)
+# Menampilkan plot menggunakan Streamlit
+st.bar_chart(usage, labels=categories, colors=['blue', 'orange'])
+st.title('Perbandingan Penggunaan Sepeda antara Jam Puncak dan Jam Non-Puncak')
+st.xlabel('Waktu')
+st.ylabel('Jumlah Penggunaan Sepeda')
 
 st.subheader("Peminjaman Sepeda pada hari dalam seminggu")
 # Fungsi untuk menampilkan rata-rata jumlah peminjaman sepeda berdasarkan hari dalam seminggu
